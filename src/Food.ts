@@ -3,16 +3,18 @@ import { Player } from "./Player";
 
 const MAX_SPEED = 10;
 export class Food {
-  x: number = 0;
-  y: number = 0;
-  size!: number;
+  x = 0;
+  y = 0;
+  size = 10;
   speed = 2;
-  direction: number = 0;
+  direction = 0;
+  color = "green";
 
   constructor(player: Player) {
     this.reset(player);
   }
   reset(player: Player) {
+    this.color = `hsl(${Math.random() * 360}, 80%, 50%)`;
     do {
       this.x = Math.random() * (WIDTH - 100) + 100;
       this.y = Math.random() * (HEIGHT - 100) + 100;
@@ -48,7 +50,7 @@ export class Food {
   }
 
   drawFood(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "hsl(130 43.12% 57.25%)";
+    ctx.fillStyle = this.color;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
     ctx.fill();
