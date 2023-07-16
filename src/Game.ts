@@ -1,17 +1,10 @@
 import { HEIGHT, WIDTH } from "./Constants";
 import { FoodController } from "./FoodController";
 import { drawGameOver } from "./GameOver";
+import { MovementController } from "./MovementController";
 import { Player } from "./Player";
 import { createCanvas } from "./createCanvas";
 import "./index.css";
-import {
-  downPressed,
-  leftPressed,
-  resetKeys,
-  rightPressed,
-  spacePressed,
-  upPressed,
-} from "./upPressed";
 
 const canvas = createCanvas();
 const ctx = canvas.getContext("2d")!;
@@ -20,6 +13,7 @@ export class Game {
   player = new Player();
   foodController = new FoodController(this);
   gameOver: boolean = false;
+  movementController = new MovementController(canvas);
 
   start() {
     this.reset();
@@ -27,13 +21,20 @@ export class Game {
   }
 
   reset() {
+    this.gameOver = false;
     this.player.reset();
     this.foodController.reset();
-    resetKeys();
+    this.movementController.reset();
   }
 
   handleCollision() {
     this.gameOver = true;
+    const eventListener = (e: TouchEvent) => {
+      e.preventDefault();
+      this.reset();
+      canvas.removeEventListener("touchstart", eventListener);
+    };
+    canvas.addEventListener("touchstart", eventListener);
   }
 
   gameLoop = () => {
@@ -43,14 +44,13 @@ export class Game {
   };
 
   update() {
-    this.player.update(
-      leftPressed ? -1 : rightPressed ? 1 : 0,
-      upPressed ? -1 : downPressed ? 1 : 0
-    );
+    const horizontalMovement = this.movementController.horizontalMovement;
+    const verticalMovement = this.movementController.verticalMovement;
+    this.player.update(horizontalMovement, verticalMovement);
     this.foodController.update();
 
     if (this.gameOver) {
-      if (spacePressed) {
+      if (this.movementController.spacePressed) {
         this.gameOver = false;
         this.reset();
       }

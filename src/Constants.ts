@@ -1,2 +1,3 @@
-export const WIDTH = 1024;
-export const HEIGHT = 576;
+export const WIDTH = 640;
+export const HEIGHT = 960;
+export const ASPECT_RATIO = WIDTH / HEIGHT;
