@@ -5,12 +5,14 @@ export let rightPressed = false;
 export let leftPressed = false;
 export let upPressed = false;
 export let downPressed = false;
+export let spacePressed = false;
 
 export function resetKeys() {
   rightPressed = false;
   leftPressed = false;
   upPressed = false;
   downPressed = false;
+  spacePressed = false;
 }
 
 function keyDownHandler(event: KeyboardEvent) {
@@ -24,6 +26,9 @@ function keyDownHandler(event: KeyboardEvent) {
   } else if (event.key === "w") {
     upPressed = true;
   }
+  if (event.key === " ") {
+    spacePressed = true;
+  }
 }
 function keyUpHandler(event: KeyboardEvent) {
   if (event.key === "d") {
@@ -35,5 +40,8 @@ function keyUpHandler(event: KeyboardEvent) {
     downPressed = false;
   } else if (event.key === "w") {
     upPressed = false;
+  }
+  if (event.key === " ") {
+    spacePressed = false;
   }
 }

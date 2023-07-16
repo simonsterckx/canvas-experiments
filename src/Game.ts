@@ -1,5 +1,6 @@
 import { HEIGHT, WIDTH } from "./Constants";
 import { FoodController } from "./FoodController";
+import { drawGameOver } from "./GameOver";
 import { Player } from "./Player";
 import { createCanvas } from "./createCanvas";
 import "./index.css";
@@ -8,6 +9,7 @@ import {
   leftPressed,
   resetKeys,
   rightPressed,
+  spacePressed,
   upPressed,
 } from "./upPressed";
 
@@ -17,6 +19,7 @@ const ctx = canvas.getContext("2d")!;
 export class Game {
   player = new Player();
   foodController = new FoodController(this);
+  gameOver: boolean = false;
 
   start() {
     this.reset();
@@ -24,14 +27,13 @@ export class Game {
   }
 
   reset() {
-    this.player.size = 50;
+    this.player.reset();
     this.foodController.reset();
     resetKeys();
   }
 
   handleCollision() {
-    window.alert("Game Over");
-    this.reset();
+    this.gameOver = true;
   }
 
   gameLoop = () => {
@@ -46,12 +48,24 @@ export class Game {
       upPressed ? -1 : downPressed ? 1 : 0
     );
     this.foodController.update();
+
+    if (this.gameOver) {
+      if (spacePressed) {
+        this.gameOver = false;
+        this.reset();
+      }
+    }
   }
 
   draw() {
     this.clearCanvas();
 
-    this.player.draw(ctx);
+    if (this.gameOver) {
+      drawGameOver(ctx, this.foodController.foodScore);
+    } else {
+      this.player.draw(ctx);
+    }
+
     this.foodController.draw(ctx);
   }
 

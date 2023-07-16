@@ -36,6 +36,9 @@ export class FoodController {
   update() {
     this.foods.forEach((food) => {
       food.update();
+      if (this.game.gameOver) {
+        return;
+      }
       if (this.player.collidesWith(food)) {
         if (food.size < this.player.size) {
           this.foodScore++;
@@ -58,6 +61,7 @@ export class FoodController {
   drawFoodCount(ctx: CanvasRenderingContext2D) {
     ctx.font = "18px sans-serif";
     ctx.fillStyle = "#222";
-    ctx.fillText(`Food: ${this.foodScore}`, 10, 20);
+    ctx.textAlign = "left";
+    ctx.fillText(`Score: ${this.foodScore}`, 10, 20);
   }
 }

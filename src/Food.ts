@@ -31,6 +31,10 @@ export class Food {
     this.x += Math.cos(this.direction) * this.speed;
     this.y += Math.sin(this.direction) * this.speed;
 
+    // wrap around the screen
+    this.x = ((this.x % WIDTH) + WIDTH) % WIDTH;
+    this.y = ((this.y % HEIGHT) + HEIGHT) % HEIGHT;
+
     // 30% chance to change direction slightly
     if (Math.random() < 0.3) {
       this.direction += Math.random() * 0.5 - 0.25;
@@ -49,36 +53,12 @@ export class Food {
     }
   }
 
-  drawFood(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = this.color;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = "hsl(135 39.6% 19.1%)";
     ctx.stroke();
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    let x1 = ((this.x % WIDTH) + WIDTH) % WIDTH;
-    let y1 = ((this.y % HEIGHT) + HEIGHT) % HEIGHT;
-    this.x = x1;
-    this.y = y1;
-    let x2 = x1 + this.size;
-    let y2 = y1 + this.size;
-    this.drawFood(ctx);
-
-    // check if touching right side
-    if (x2 > WIDTH) {
-      this.drawFood(ctx); // draw left copy
-
-      // check if touching bottom
-      if (y2 > HEIGHT) {
-        this.drawFood(ctx); // draw top copy
-      }
-    }
-
-    if (y2 > HEIGHT) {
-      this.drawFood(ctx);
-    }
   }
 }
