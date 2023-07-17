@@ -12,6 +12,7 @@ export class Player {
   y: number;
   size: number;
   speed: number;
+  eyeDirection = 0;
 
   constructor(x = 0, y = 0) {
     this.size = PLAYER_INITIAL_SIZE;
@@ -29,6 +30,13 @@ export class Player {
     this.x += horizontalDisplacement * this.speed;
     this.y += verticalDisplacement * this.speed;
 
+    if (horizontalDisplacement || verticalDisplacement) {
+      this.eyeDirection = Math.atan2(
+        verticalDisplacement,
+        horizontalDisplacement
+      );
+    }
+
     // wrap around the screen
     this.x = ((this.x % WIDTH) + WIDTH) % WIDTH;
     this.y = ((this.y % HEIGHT) + HEIGHT) % HEIGHT;
@@ -42,7 +50,7 @@ export class Player {
     return this.distanceTo(other) <= this.size / 2 + other.size / 2;
   }
   grow() {
-    this.size += 5;
+    this.size += 4;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -54,5 +62,31 @@ export class Player {
     ctx.strokeStyle = tomatoDark.tomato8;
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    // Add an eye looking in the direction of movement
+    ctx.beginPath();
+    ctx.arc(
+      this.x + Math.cos(this.eyeDirection) * this.size * 0.3,
+      this.y + Math.sin(this.eyeDirection) * this.size * 0.3,
+      this.size * 0.2,
+      0,
+      Math.PI * 2
+    );
+    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.fill();
+    ctx.closePath();
+
+    // Add a pupil looking in the direction of movement
+    ctx.beginPath();
+    ctx.arc(
+      this.x + Math.cos(this.eyeDirection) * this.size * 0.3,
+      this.y + Math.sin(this.eyeDirection) * this.size * 0.3,
+      this.size * 0.1,
+      0,
+      Math.PI * 2
+    );
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fill();
+    ctx.closePath();
   }
 }

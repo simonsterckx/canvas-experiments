@@ -43,7 +43,7 @@ export class FoodController {
         if (food.size < this.player.size) {
           this.foodScore++;
           do {
-            food.reset(this.player);
+            food.reset();
           } while (!this.hasAtLeastOneAvailableFood());
 
           this.player.grow();

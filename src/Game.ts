@@ -19,15 +19,16 @@ export class Game {
   joystick = new VirtualJoystick();
 
   start() {
-    this.reset();
+    this.restartGame();
     window.requestAnimationFrame(this.gameLoop);
   }
 
-  reset() {
+  restartGame() {
     this.gameOver = false;
     this.player.reset();
     this.foodController.reset();
     this.keyboardController.reset();
+    this.joystick.reset();
   }
 
   handleCollision() {
@@ -37,14 +38,15 @@ export class Game {
     saveHighscore(score);
     const touchListener = (e: TouchEvent) => {
       e.preventDefault();
-      this.reset();
+      e.stopPropagation();
+      this.restartGame();
       canvas.removeEventListener("touchstart", touchListener);
     };
     canvas.addEventListener("touchstart", touchListener);
 
     const keyListener = (e: KeyboardEvent) => {
       if (e.key === " ") {
-        this.reset();
+        this.restartGame();
         window.removeEventListener("keydown", keyListener);
       }
     };
@@ -78,6 +80,7 @@ export class Game {
     this.foodController.draw(ctx);
 
     if (this.gameOver) {
+      this.joystick.disabled = true;
       drawGameOver(ctx, this.foodController.foodScore);
     } else {
       this.player.draw(ctx);

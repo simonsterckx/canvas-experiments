@@ -16,6 +16,8 @@ export class VirtualJoystick {
   isMobile = false;
   canvas!: HTMLCanvasElement;
   ctx!: CanvasRenderingContext2D;
+
+  disabled = false;
   constructor() {
     this.isPressed = false;
     if (!isMobile) return;
@@ -24,34 +26,53 @@ export class VirtualJoystick {
     this.ctx = this.canvas.getContext("2d")!;
     this.canvas.width = JOYSTICK_WIDTH;
     this.canvas.height = JOYSTICK_HEIGHT;
+
+    const left = window.innerWidth - JOYSTICK_WIDTH;
+    const top = window.innerHeight - JOYSTICK_HEIGHT;
+    this.canvas.style.transform = `translate(${left}px, ${top}px)`;
+
     this.canvas.className = "joystick";
     document.body.appendChild(this.canvas);
 
-    this.canvas.addEventListener("mousedown", this.onMouseDown);
-    this.canvas.addEventListener("touchstart", this.onMouseDown);
-    this.canvas.addEventListener("mouseup", this.onMouseUp);
-    this.canvas.addEventListener("touchend", this.onMouseUp);
-    this.canvas.addEventListener("mousemove", this.onMouseMove);
-    this.canvas.addEventListener("touchmove", this.onMouseMove);
-    this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    document.body.addEventListener("touchstart", this.onBodyTouchStart);
+    document.body.addEventListener("touchstart", this.onMouseDown);
+    document.body.addEventListener("touchend", this.onMouseUp);
+    document.body.addEventListener("touchmove", this.onMouseMove);
+    document.body.addEventListener("contextmenu", (e) => e.preventDefault());
     this.draw();
   }
-  onMouseDown = (e: MouseEvent | TouchEvent) => {
+  reset() {
+    this.disabled = false;
+    this.x = 0;
+    this.y = 0;
+
+    this.draw();
+  }
+  onBodyTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    if (this.disabled) return;
+
+    // Move the joystick to the position of the mouse
+    const left = e.touches[0].clientX - HALF_JOYSTICK_WIDTH;
+    const top = e.touches[0].clientY - HALF_JOYSTICK_HEIGHT;
+    this.canvas.style.transform = `translate(${left}px, ${top}px)`;
+  };
+  onMouseDown = (e: TouchEvent) => {
     e.preventDefault();
     this.isPressed = true;
   };
-  onMouseUp = (e: MouseEvent | TouchEvent) => {
+  onMouseUp = (e: TouchEvent) => {
     e.preventDefault();
     this.isPressed = false;
     this.x = 0;
     this.y = 0;
   };
-  onMouseMove = (e: TouchEvent | MouseEvent) => {
+  onMouseMove = (e: TouchEvent) => {
     e.preventDefault();
     if (this.isPressed) {
       const rect = this.canvas.getBoundingClientRect();
-      const x = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX;
-      const y = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY;
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
 
       this.x = (x - rect.left - HALF_JOYSTICK_WIDTH) / JOYSTICK_MAX_RADIUS;
       this.y = (y - rect.top - HALF_JOYSTICK_HEIGHT) / JOYSTICK_MAX_RADIUS;
