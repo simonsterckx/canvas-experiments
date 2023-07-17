@@ -17,11 +17,11 @@ export class MovementController {
     document.addEventListener("keydown", this.keyDownHandler, false);
     document.addEventListener("keyup", this.keyUpHandler, false);
 
-    canvas.addEventListener("touchstart", this.touchStartHandler, false);
-    canvas.addEventListener("touchmove", this.touchStartHandler, false);
+    // canvas.addEventListener("touchstart", this.touchStartHandler, false);
+    // canvas.addEventListener("touchmove", this.touchStartHandler, false);
 
-    canvas.addEventListener("touchend", this.touchEndHandler, false);
-    canvas.addEventListener("touchcancel", this.touchEndHandler, false);
+    // canvas.addEventListener("touchend", this.touchEndHandler, false);
+    // canvas.addEventListener("touchcancel", this.touchEndHandler, false);
 
     this.canvasWidth = canvas.getBoundingClientRect().width;
     this.canvasHeight = canvas.getBoundingClientRect().height;

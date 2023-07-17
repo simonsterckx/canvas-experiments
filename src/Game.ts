@@ -1,8 +1,9 @@
-import { HEIGHT, WIDTH } from "./Constants";
+import { HEIGHT, WIDTH, isMobile } from "./Constants";
 import { FoodController } from "./FoodController";
 import { drawGameOver } from "./GameOver";
 import { MovementController } from "./MovementController";
 import { Player } from "./Player";
+import { VirtualJoystick } from "./VirtualJoystick";
 import { createCanvas } from "./createCanvas";
 import "./index.css";
 
@@ -14,6 +15,7 @@ export class Game {
   foodController = new FoodController(this);
   gameOver: boolean = false;
   movementController = new MovementController(canvas);
+  joystick = new VirtualJoystick();
 
   start() {
     this.reset();
@@ -44,8 +46,12 @@ export class Game {
   };
 
   update() {
-    const horizontalMovement = this.movementController.horizontalMovement;
-    const verticalMovement = this.movementController.verticalMovement;
+    let horizontalMovement = this.movementController.horizontalMovement;
+    let verticalMovement = this.movementController.verticalMovement;
+    if (isMobile) {
+      horizontalMovement = this.joystick.x;
+      verticalMovement = this.joystick.y;
+    }
     this.player.update(horizontalMovement, verticalMovement);
     this.foodController.update();
 

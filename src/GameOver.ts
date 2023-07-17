@@ -1,4 +1,6 @@
-import { HEIGHT, WIDTH } from "./Constants";
+import { HEIGHT, WIDTH, isMobile } from "./Constants";
+
+const message = isMobile ? "Tap to restart" : "Press space to restart";
 
 export function drawGameOver(ctx: CanvasRenderingContext2D, score: number) {
   ctx.fillStyle = "black";
@@ -13,5 +15,5 @@ export function drawGameOver(ctx: CanvasRenderingContext2D, score: number) {
   ctx.fillText(`Score: ${score}`, WIDTH / 2, HEIGHT / 2);
 
   ctx.font = "20px sans-serif";
-  ctx.fillText("Press space to restart", WIDTH / 2, HEIGHT / 2 + 50);
+  ctx.fillText(message, WIDTH / 2, HEIGHT / 2 + 50);
 }
