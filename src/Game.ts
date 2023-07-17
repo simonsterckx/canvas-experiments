@@ -1,11 +1,12 @@
 import { HEIGHT, WIDTH, isMobile } from "./Constants";
 import { FoodController } from "./FoodController";
 import { drawGameOver } from "./GameOver";
-import { MovementController } from "./MovementController";
+import { KeyboardController } from "./KeyboardController";
 import { Player } from "./Player";
 import { VirtualJoystick } from "./VirtualJoystick";
 import { createCanvas } from "./createCanvas";
 import "./index.css";
+import { saveHighscore } from "./saveHighscore";
 
 const canvas = createCanvas();
 const ctx = canvas.getContext("2d")!;
@@ -14,7 +15,7 @@ export class Game {
   player = new Player();
   foodController = new FoodController(this);
   gameOver: boolean = false;
-  movementController = new MovementController(canvas);
+  keyboardController = new KeyboardController(canvas);
   joystick = new VirtualJoystick();
 
   start() {
@@ -26,17 +27,28 @@ export class Game {
     this.gameOver = false;
     this.player.reset();
     this.foodController.reset();
-    this.movementController.reset();
+    this.keyboardController.reset();
   }
 
   handleCollision() {
     this.gameOver = true;
-    const eventListener = (e: TouchEvent) => {
+    // save score
+    const score = this.foodController.foodScore;
+    saveHighscore(score);
+    const touchListener = (e: TouchEvent) => {
       e.preventDefault();
       this.reset();
-      canvas.removeEventListener("touchstart", eventListener);
+      canvas.removeEventListener("touchstart", touchListener);
     };
-    canvas.addEventListener("touchstart", eventListener);
+    canvas.addEventListener("touchstart", touchListener);
+
+    const keyListener = (e: KeyboardEvent) => {
+      if (e.key === " ") {
+        this.reset();
+        window.removeEventListener("keydown", keyListener);
+      }
+    };
+    window.addEventListener("keydown", keyListener);
   }
 
   gameLoop = () => {
@@ -46,33 +58,30 @@ export class Game {
   };
 
   update() {
-    let horizontalMovement = this.movementController.horizontalMovement;
-    let verticalMovement = this.movementController.verticalMovement;
+    let horizontalMovement = 0;
+    let verticalMovement = 0;
     if (isMobile) {
       horizontalMovement = this.joystick.x;
       verticalMovement = this.joystick.y;
+    } else {
+      horizontalMovement = this.keyboardController.horizontalMovement;
+      verticalMovement = this.keyboardController.verticalMovement;
     }
+
     this.player.update(horizontalMovement, verticalMovement);
     this.foodController.update();
-
-    if (this.gameOver) {
-      if (this.movementController.spacePressed) {
-        this.gameOver = false;
-        this.reset();
-      }
-    }
   }
 
   draw() {
     this.clearCanvas();
+
+    this.foodController.draw(ctx);
 
     if (this.gameOver) {
       drawGameOver(ctx, this.foodController.foodScore);
     } else {
       this.player.draw(ctx);
     }
-
-    this.foodController.draw(ctx);
   }
 
   clearCanvas() {
