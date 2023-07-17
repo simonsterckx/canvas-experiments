@@ -14,3 +14,15 @@ body {
   align-items: center;
   background-color: hsla(173, 99.8%, 31.1%, 0.93);
 }
+
+.joystick {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  touch-action: none;
+  user-select: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px;
+  cursor: pointer;
+}
