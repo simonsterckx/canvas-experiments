@@ -14,6 +14,7 @@ export class Game {
   joystick = new VirtualJoystick();
   canvas!: HTMLCanvasElement;
   ctx!: CanvasRenderingContext2D;
+  lastTimestamp: number = 0;
 
   start() {
     this.canvas = createCanvas();
@@ -46,18 +47,21 @@ export class Game {
     this.canvas.addEventListener("touchstart", touchListener);
   }
 
-  gameLoop = () => {
-    this.update();
-    this.draw();
+  gameLoop = (timestamp: DOMHighResTimeStamp) => {
     window.requestAnimationFrame(this.gameLoop);
+    // Calculate delta time (time elapsed since the last frame)
+    const delta = (timestamp - this.lastTimestamp) / 1000; // Convert to seconds
+    this.lastTimestamp = timestamp;
+    this.update(delta);
+    this.draw();
   };
 
-  update() {
+  update(delta: number) {
     const horizontalMovement = this.joystick.x;
     const verticalMovement = this.joystick.y;
 
-    this.player.update(horizontalMovement, verticalMovement);
-    this.foodController.update();
+    this.player.update(delta, horizontalMovement, verticalMovement);
+    this.foodController.update(delta);
   }
 
   draw() {

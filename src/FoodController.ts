@@ -36,9 +36,9 @@ export class FoodController {
     this.drawFoodCount(ctx);
   }
 
-  update() {
+  update(delta: number) {
     this.foods.forEach((food) => {
-      food.update();
+      food.update(delta);
       if (this.game.gameOver) {
         return;
       }

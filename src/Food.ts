@@ -2,7 +2,8 @@ import { HEIGHT, WIDTH } from "./Constants";
 import { Player } from "./Player";
 import { interpolate } from "./interpolate";
 
-const MAX_SPEED = 9;
+const MAX_SPEED = 8;
+const MIN_SPEED = 1;
 export class Food {
   x = 0;
   y = 0;
@@ -28,15 +29,16 @@ export class Food {
     this.speed = Math.random() * 5 + 1;
 
     // food size is random but based to player size
-    this.size = this.player.size / 2 + Math.random() * this.player.size;
+    // At least half the player size, up to 1.4 times the player size
+    this.size = this.player.size / 2 + (Math.random() * this.player.size - 0.1);
 
     // speed is related to size. bigger food is slower
     this.speed -= this.size / 10;
   }
 
-  update() {
-    this.x += Math.cos(this.direction) * this.speed;
-    this.y += Math.sin(this.direction) * this.speed;
+  update(delta: number) {
+    this.x += Math.cos(this.direction) * this.speed * delta * 60;
+    this.y += Math.sin(this.direction) * this.speed * delta * 60;
 
     // wrap around the screen
     this.x = ((this.x % WIDTH) + WIDTH) % WIDTH;
@@ -49,38 +51,48 @@ export class Food {
 
     // 5% chance to change direction a lot
     if (Math.random() < 0.05) {
-      this.direction += Math.random() * 2 - 1;
+      this.direction += Math.random() * 1.8 - 0.9;
     }
 
     // 30% chance to change speed slightly
     if (Math.random() < 0.3) {
       this.speed += Math.random() * 0.5 - 0.25;
-      if (this.speed < 1) this.speed = 1;
+      if (this.speed < MIN_SPEED) this.speed = MIN_SPEED;
       if (this.speed > MAX_SPEED) this.speed = MAX_SPEED;
     }
 
-    const distanceToPlayer = this.distanceToPlayer();
     let newMouthSize = 0;
-    if (distanceToPlayer < 50) {
-      const interpolatedMouthSize = interpolate(
-        distanceToPlayer,
-        50,
-        0,
-        0,
-        0.2
-      );
-      newMouthSize = interpolatedMouthSize;
+
+    const distanceToPlayer = this.distanceToPlayer();
+    if (distanceToPlayer < 90) {
       const directionToPlayer = Math.atan2(
         this.player.y - this.y,
         this.player.x - this.x
       );
-      this.eyeDirection = this.eyeDirection * 0.9 + directionToPlayer * 0.1;
+
+      if (this.size > this.player.size) {
+        const interpolatedMouthSize = interpolate(
+          distanceToPlayer,
+          50,
+          0,
+          0,
+          0.2
+        );
+        newMouthSize = interpolatedMouthSize;
+        this.direction = this.direction * 0.9 + directionToPlayer * 0.1;
+        this.eyeDirection = this.eyeDirection * 0.9 + directionToPlayer * 0.1;
+      } else {
+        // flee from player
+        this.direction =
+          this.direction * 0.9 + (directionToPlayer + Math.PI) * 0.1;
+        this.eyeDirection = this.eyeDirection * 0.9 + this.direction * 0.1;
+      }
     } else {
-      // Tween based on direction to make smooth changes
       this.eyeDirection = this.eyeDirection * 0.9 + this.direction * 0.1;
     }
+
+    // Smoothly interpolate mouth size
     this.mouthSize = this.mouthSize * 0.9 + newMouthSize * 0.1;
-    // Tween based on speed on distance to player
   }
 
   distanceToSquared(other: { x: number; y: number }) {
@@ -118,8 +130,6 @@ export class Food {
     ctx.strokeStyle = "hsl(135 39.6% 19.1%)";
     ctx.stroke();
 
-    // Add a transform that makes the eyes oval
-    ctx.transform(1, 0, 0, 0.9, 0.1, 0);
     // Add an eye
     ctx.beginPath();
     ctx.arc(

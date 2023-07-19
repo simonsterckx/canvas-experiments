@@ -26,9 +26,13 @@ export class Player {
     this.y = HEIGHT / 2;
   }
 
-  update(horizontalDisplacement: number, verticalDisplacement: number) {
-    this.x += horizontalDisplacement * this.speed;
-    this.y += verticalDisplacement * this.speed;
+  update(
+    delta: number,
+    horizontalDisplacement: number,
+    verticalDisplacement: number
+  ) {
+    this.x += horizontalDisplacement * this.speed * delta * 60;
+    this.y += verticalDisplacement * this.speed * delta * 60;
 
     if (horizontalDisplacement || verticalDisplacement) {
       this.eyeDirection = Math.atan2(
@@ -43,7 +47,13 @@ export class Player {
   }
 
   grow() {
-    this.size += 4;
+    if (this.size < 100) {
+      this.size += 4;
+    } else if (this.size < 200) {
+      this.size += 3;
+    } else if (this.size < 300) {
+      this.size += 2;
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D) {
