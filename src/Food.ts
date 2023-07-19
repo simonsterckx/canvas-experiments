@@ -2,7 +2,7 @@ import { HEIGHT, WIDTH } from "./Constants";
 import { Player } from "./Player";
 import { interpolate } from "./interpolate";
 
-const MAX_SPEED = 8;
+const MAX_SPEED = 7;
 const MIN_SPEED = 1;
 export class Food {
   x = 0;
@@ -22,7 +22,7 @@ export class Food {
     do {
       this.x = Math.random() * WIDTH;
       this.y = Math.random() * HEIGHT;
-    } while (this.distanceTo(this.player) < 200 + this.player.size);
+    } while (this.distanceToPlayer() < 200 + this.player.size);
 
     this.direction = Math.random() * Math.PI * 2;
     this.eyeDirection = this.direction;
@@ -64,11 +64,8 @@ export class Food {
     let newMouthSize = 0;
 
     const distanceToPlayer = this.distanceToPlayer();
-    if (distanceToPlayer < 90) {
-      const directionToPlayer = Math.atan2(
-        this.player.y - this.y,
-        this.player.x - this.x
-      );
+    if (distanceToPlayer < 80) {
+      const directionToPlayer = this.directionToPlayer();
 
       if (this.size > this.player.size) {
         const interpolatedMouthSize = interpolate(
@@ -94,20 +91,53 @@ export class Food {
     // Smoothly interpolate mouth size
     this.mouthSize = this.mouthSize * 0.9 + newMouthSize * 0.1;
   }
+  directionToPlayer() {
+    let dx = this.player.x - this.x;
+    let dy = this.player.y - this.y;
 
-  distanceToSquared(other: { x: number; y: number }) {
-    return (this.x - other.x) ** 2 + (this.y - other.y) ** 2;
+    // Check if otherPlayer is partially visible on the left or right side of the screen
+    if (dx > WIDTH - this.size / 2) {
+      dx -= WIDTH;
+    } else if (dx < -WIDTH + this.size / 2) {
+      dx += WIDTH;
+    }
+
+    // Check if otherPlayer is partially visible on the top or bottom side of the screen
+    if (dy > HEIGHT - this.size / 2) {
+      dy -= HEIGHT;
+    } else if (dy < -HEIGHT + this.size / 2) {
+      dy += HEIGHT;
+    }
+
+    // // Consider the wrapping effect along the X-axis
+    // if (Math.abs(dx) > WIDTH / 2) {
+    //   dx = dx < 0 ? dx + WIDTH : dx - WIDTH;
+    // }
+
+    // // Consider the wrapping effect along the Y-axis
+    // if (Math.abs(dy) > HEIGHT / 2) {
+    //   dy = dy < 0 ? dy + HEIGHT : dy - HEIGHT;
+    // }
+    return Math.atan2(dy, dx);
   }
-  distanceTo(other: { x: number; y: number }) {
-    return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2);
-  }
 
-  distanceToPlayer = () =>
-    this.distanceTo(this.player) - this.player.size / 2 - this.size / 2;
+  distanceToPlayer = () => {
+    const dx = Math.abs(this.x - this.player.x);
+    const dy = Math.abs(this.y - this.player.y);
 
-  draw(ctx: CanvasRenderingContext2D) {
+    // Calculate the minimum distance in both axes considering wrapping
+    const distanceX = Math.min(dx, WIDTH - dx);
+    const distanceY = Math.min(dy, HEIGHT - dy);
+
+    // Calculate the actual distance
+    const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+    return distance - this.player.size / 2 - this.size / 2;
+  };
+
+  drawFood(ctx: CanvasRenderingContext2D, x: number, y: number) {
     ctx.save();
-    ctx.translate(this.x, this.y);
+    ctx.translate(x, y);
     ctx.rotate(this.eyeDirection);
     ctx.fillStyle = this.color;
 
@@ -157,5 +187,21 @@ export class Food {
     ctx.closePath();
 
     ctx.restore();
+  }
+  draw(ctx: CanvasRenderingContext2D) {
+    this.drawFood(ctx, this.x, this.y);
+    // Handle wrapping around the screen
+    if (this.x < this.size / 2) {
+      this.drawFood(ctx, this.x + WIDTH, this.y);
+    }
+    if (this.x > WIDTH - this.size / 2) {
+      this.drawFood(ctx, this.x - WIDTH, this.y);
+    }
+    if (this.y < this.size / 2) {
+      this.drawFood(ctx, this.x, this.y + HEIGHT);
+    }
+    if (this.y > HEIGHT - this.size / 2) {
+      this.drawFood(ctx, this.x, this.y - HEIGHT);
+    }
   }
 }

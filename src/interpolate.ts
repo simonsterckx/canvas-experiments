@@ -6,7 +6,9 @@ export function interpolate(
   outputMax: number
 ): number {
   if (inputMin > inputMax) {
-    [inputMin, inputMax] = [inputMax, inputMin];
+    let tempMax = inputMax;
+    inputMax = inputMin;
+    inputMin = tempMax;
   }
 
   const inputValue = Math.min(Math.max(value, inputMin), inputMax);

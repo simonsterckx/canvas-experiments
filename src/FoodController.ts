@@ -42,6 +42,7 @@ export class FoodController {
       if (this.game.gameOver) {
         return;
       }
+      // return;
       if (food.distanceToPlayer() <= 0) {
         if (this.player.size >= food.size) {
           this.foodScore++;

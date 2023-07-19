@@ -55,10 +55,27 @@ export class Player {
       this.size += 2;
     }
   }
-
   draw(ctx: CanvasRenderingContext2D) {
+    this.drawPlayer(ctx, this.x, this.y);
+
+    // Handle wrapping around the screen
+    if (this.x < this.size) {
+      this.drawPlayer(ctx, this.x + WIDTH, this.y);
+    }
+    if (this.x > WIDTH - this.size) {
+      this.drawPlayer(ctx, this.x - WIDTH, this.y);
+    }
+    if (this.y < this.size) {
+      this.drawPlayer(ctx, this.x, this.y + HEIGHT);
+    }
+    if (this.y > HEIGHT - this.size) {
+      this.drawPlayer(ctx, this.x, this.y - HEIGHT);
+    }
+  }
+
+  drawPlayer(ctx: CanvasRenderingContext2D, x: number, y: number) {
     ctx.save();
-    ctx.translate(this.x, this.y);
+    ctx.translate(x, y);
     ctx.rotate(this.eyeDirection);
 
     ctx.fillStyle = tomatoDark.tomato9;
