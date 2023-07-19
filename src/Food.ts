@@ -1,7 +1,8 @@
 import { HEIGHT, WIDTH } from "./Constants";
 import { Player } from "./Player";
+import { interpolate } from "./interpolate";
 
-const MAX_SPEED = 10;
+const MAX_SPEED = 9;
 export class Food {
   x = 0;
   y = 0;
@@ -9,7 +10,8 @@ export class Food {
   speed = 2;
   direction = 0;
   color = "green";
-  eyeDirection: any;
+  eyeDirection = 0;
+  mouthSize = 0;
 
   constructor(public player: Player) {
     this.reset();
@@ -17,9 +19,9 @@ export class Food {
   reset() {
     this.color = `hsl(${Math.random() * 360}, 80%, 50%)`;
     do {
-      this.x = Math.random() * (WIDTH - 100) + 100;
-      this.y = Math.random() * (HEIGHT - 100) + 100;
-    } while (this.player.distanceTo(this) < 200 + this.player.size);
+      this.x = Math.random() * WIDTH;
+      this.y = Math.random() * HEIGHT;
+    } while (this.distanceTo(this.player) < 200 + this.player.size);
 
     this.direction = Math.random() * Math.PI * 2;
     this.eyeDirection = this.direction;
@@ -57,24 +59,73 @@ export class Food {
       if (this.speed > MAX_SPEED) this.speed = MAX_SPEED;
     }
 
-    // Tween based on direction to make smooth changes
-    this.eyeDirection = this.eyeDirection * 0.9 + this.direction * 0.1;
+    const distanceToPlayer = this.distanceToPlayer();
+    let newMouthSize = 0;
+    if (distanceToPlayer < 50) {
+      const interpolatedMouthSize = interpolate(
+        distanceToPlayer,
+        50,
+        0,
+        0,
+        0.2
+      );
+      newMouthSize = interpolatedMouthSize;
+      const directionToPlayer = Math.atan2(
+        this.player.y - this.y,
+        this.player.x - this.x
+      );
+      this.eyeDirection = this.eyeDirection * 0.9 + directionToPlayer * 0.1;
+    } else {
+      // Tween based on direction to make smooth changes
+      this.eyeDirection = this.eyeDirection * 0.9 + this.direction * 0.1;
+    }
+    this.mouthSize = this.mouthSize * 0.9 + newMouthSize * 0.1;
+    // Tween based on speed on distance to player
   }
 
+  distanceToSquared(other: { x: number; y: number }) {
+    return (this.x - other.x) ** 2 + (this.y - other.y) ** 2;
+  }
+  distanceTo(other: { x: number; y: number }) {
+    return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2);
+  }
+
+  distanceToPlayer = () =>
+    this.distanceTo(this.player) - this.player.size / 2 - this.size / 2;
+
   draw(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.eyeDirection);
     ctx.fillStyle = this.color;
+
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+    const offsetAngle = 0.2;
+    ctx.arc(
+      0,
+      0,
+      this.size / 2,
+      offsetAngle + this.mouthSize * Math.PI,
+      offsetAngle + (2 - this.mouthSize) * Math.PI
+    );
+
+    // The mouth
+    // A line from the end of the arc to the centre
+    ctx.lineTo(this.size * 0.25, this.size * 0.1);
+    ctx.closePath();
+
     ctx.fill();
     ctx.strokeStyle = "hsl(135 39.6% 19.1%)";
     ctx.stroke();
 
-    // Add an eye looking in the direction of movement
+    // Add a transform that makes the eyes oval
+    ctx.transform(1, 0, 0, 0.9, 0.1, 0);
+    // Add an eye
     ctx.beginPath();
     ctx.arc(
-      this.x + Math.cos(this.eyeDirection) * this.size * 0.3,
-      this.y + Math.sin(this.eyeDirection) * this.size * 0.3,
-      this.size * 0.2,
+      this.size * 0.1,
+      -this.size * 0.2,
+      this.size * 0.14,
       0,
       Math.PI * 2
     );
@@ -82,17 +133,19 @@ export class Food {
     ctx.fill();
     ctx.closePath();
 
-    // Add a pupil looking in the direction of movement
+    // Add a pupil
     ctx.beginPath();
     ctx.arc(
-      this.x + Math.cos(this.eyeDirection) * this.size * 0.3,
-      this.y + Math.sin(this.eyeDirection) * this.size * 0.3,
       this.size * 0.1,
+      -this.size * 0.2,
+      this.size * 0.08,
       0,
       Math.PI * 2
     );
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fill();
     ctx.closePath();
+
+    ctx.restore();
   }
 }

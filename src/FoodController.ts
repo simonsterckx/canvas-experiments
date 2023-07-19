@@ -22,6 +22,9 @@ export class FoodController {
     this.createFood();
     this.createFood();
     this.createFood();
+    while (!this.hasAtLeastOneAvailableFood()) {
+      this.foods[0].reset();
+    }
   }
 
   createFood() {
@@ -39,8 +42,8 @@ export class FoodController {
       if (this.game.gameOver) {
         return;
       }
-      if (this.player.collidesWith(food)) {
-        if (food.size < this.player.size) {
+      if (food.distanceToPlayer() <= 0) {
+        if (this.player.size >= food.size) {
           this.foodScore++;
           do {
             food.reset();

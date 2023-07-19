@@ -42,51 +42,67 @@ export class Player {
     this.y = ((this.y % HEIGHT) + HEIGHT) % HEIGHT;
   }
 
-  distanceTo(other: { x: number; y: number }) {
-    return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2);
-  }
-
-  collidesWith(other: { x: number; y: number; size: number }) {
-    return this.distanceTo(other) <= this.size / 2 + other.size / 2;
-  }
   grow() {
     this.size += 4;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.eyeDirection);
+
     ctx.fillStyle = tomatoDark.tomato9;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+
+    // The circle
+    ctx.beginPath();
+    const offsetAngle = 0.2;
+    const mouthSize = 0.1;
+    ctx.arc(
+      0,
+      0,
+      this.size / 2,
+      offsetAngle + mouthSize * Math.PI,
+      offsetAngle + (2 - mouthSize) * Math.PI
+    );
+
+    // The mouth
+    // A line from the end of the arc to the centre
+    ctx.lineTo(this.size * 0.25, this.size * 0.1);
+    ctx.closePath();
+
     ctx.fill();
 
     ctx.strokeStyle = tomatoDark.tomato8;
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Add an eye looking in the direction of movement
+    // Add an eye
     ctx.beginPath();
     ctx.arc(
-      this.x + Math.cos(this.eyeDirection) * this.size * 0.3,
-      this.y + Math.sin(this.eyeDirection) * this.size * 0.3,
-      this.size * 0.2,
+      this.size * 0.1,
+      -this.size * 0.2,
+      this.size * 0.14,
       0,
       Math.PI * 2
     );
-    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     ctx.fill();
     ctx.closePath();
 
-    // Add a pupil looking in the direction of movement
+    // Add a pupil
     ctx.beginPath();
     ctx.arc(
-      this.x + Math.cos(this.eyeDirection) * this.size * 0.3,
-      this.y + Math.sin(this.eyeDirection) * this.size * 0.3,
       this.size * 0.1,
+      -this.size * 0.2,
+      this.size * 0.08,
       0,
       Math.PI * 2
     );
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fill();
     ctx.closePath();
+
+    ctx.restore();
   }
 }

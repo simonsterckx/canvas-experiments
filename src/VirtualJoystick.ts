@@ -20,7 +20,6 @@ export class VirtualJoystick {
   disabled = false;
   constructor() {
     this.isPressed = false;
-    if (!isMobile) return;
 
     this.canvas = document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d")!;
@@ -34,7 +33,11 @@ export class VirtualJoystick {
     this.canvas.className = "joystick";
     document.body.appendChild(this.canvas);
 
-    document.body.addEventListener("touchstart", this.onBodyTouchStart);
+    // Add mouse events
+    document.body.addEventListener("mousedown", this.onMouseDown);
+    document.body.addEventListener("mouseup", this.onMouseUp);
+    document.body.addEventListener("mousemove", this.onMouseMove);
+
     document.body.addEventListener("touchstart", this.onMouseDown);
     document.body.addEventListener("touchend", this.onMouseUp);
     document.body.addEventListener("touchmove", this.onMouseMove);
@@ -48,31 +51,32 @@ export class VirtualJoystick {
 
     this.draw();
   }
-  onBodyTouchStart = (e: TouchEvent) => {
+
+  onMouseDown = (e: TouchEvent | MouseEvent) => {
     e.preventDefault();
     if (this.disabled) return;
 
     // Move the joystick to the position of the mouse
-    const left = e.touches[0].clientX - HALF_JOYSTICK_WIDTH;
-    const top = e.touches[0].clientY - HALF_JOYSTICK_HEIGHT;
+    const x = e instanceof TouchEvent ? e.touches[0].clientX : e.clientX;
+    const y = e instanceof TouchEvent ? e.touches[0].clientY : e.clientY;
+    const left = x - HALF_JOYSTICK_WIDTH;
+    const top = y - HALF_JOYSTICK_HEIGHT;
     this.canvas.style.transform = `translate(${left}px, ${top}px)`;
-  };
-  onMouseDown = (e: TouchEvent) => {
-    e.preventDefault();
+
     this.isPressed = true;
   };
-  onMouseUp = (e: TouchEvent) => {
+  onMouseUp = (e: TouchEvent | MouseEvent) => {
     e.preventDefault();
     this.isPressed = false;
     this.x = 0;
     this.y = 0;
   };
-  onMouseMove = (e: TouchEvent) => {
+  onMouseMove = (e: TouchEvent | MouseEvent) => {
     e.preventDefault();
     if (this.isPressed) {
       const rect = this.canvas.getBoundingClientRect();
-      const x = e.touches[0].clientX;
-      const y = e.touches[0].clientY;
+      const x = e instanceof TouchEvent ? e.touches[0].clientX : e.clientX;
+      const y = e instanceof TouchEvent ? e.touches[0].clientY : e.clientY;
 
       this.x = (x - rect.left - HALF_JOYSTICK_WIDTH) / JOYSTICK_MAX_RADIUS;
       this.y = (y - rect.top - HALF_JOYSTICK_HEIGHT) / JOYSTICK_MAX_RADIUS;

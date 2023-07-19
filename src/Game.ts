@@ -1,24 +1,23 @@
-import { HEIGHT, WIDTH, isMobile } from "./Constants";
+import { HEIGHT, WIDTH } from "./Constants";
 import { FoodController } from "./FoodController";
 import { drawGameOver } from "./GameOver";
-import { KeyboardController } from "./KeyboardController";
 import { Player } from "./Player";
 import { VirtualJoystick } from "./VirtualJoystick";
 import { createCanvas } from "./createCanvas";
 import "./index.css";
 import { saveHighscore } from "./saveHighscore";
 
-const canvas = createCanvas();
-const ctx = canvas.getContext("2d")!;
-
 export class Game {
   player = new Player();
   foodController = new FoodController(this);
   gameOver: boolean = false;
-  keyboardController = new KeyboardController(canvas);
   joystick = new VirtualJoystick();
+  canvas!: HTMLCanvasElement;
+  ctx!: CanvasRenderingContext2D;
 
   start() {
+    this.canvas = createCanvas();
+    this.ctx = this.canvas.getContext("2d")!;
     this.restartGame();
     window.requestAnimationFrame(this.gameLoop);
   }
@@ -27,7 +26,6 @@ export class Game {
     this.gameOver = false;
     this.player.reset();
     this.foodController.reset();
-    this.keyboardController.reset();
     this.joystick.reset();
   }
 
@@ -36,21 +34,16 @@ export class Game {
     // save score
     const score = this.foodController.foodScore;
     saveHighscore(score);
-    const touchListener = (e: TouchEvent) => {
+
+    const touchListener = (e: TouchEvent | MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       this.restartGame();
-      canvas.removeEventListener("touchstart", touchListener);
+      this.canvas.removeEventListener("touchstart", touchListener);
+      this.canvas.removeEventListener("mousedown", touchListener);
     };
-    canvas.addEventListener("touchstart", touchListener);
-
-    const keyListener = (e: KeyboardEvent) => {
-      if (e.key === " ") {
-        this.restartGame();
-        window.removeEventListener("keydown", keyListener);
-      }
-    };
-    window.addEventListener("keydown", keyListener);
+    this.canvas.addEventListener("mousedown", touchListener);
+    this.canvas.addEventListener("touchstart", touchListener);
   }
 
   gameLoop = () => {
@@ -60,15 +53,8 @@ export class Game {
   };
 
   update() {
-    let horizontalMovement = 0;
-    let verticalMovement = 0;
-    if (isMobile) {
-      horizontalMovement = this.joystick.x;
-      verticalMovement = this.joystick.y;
-    } else {
-      horizontalMovement = this.keyboardController.horizontalMovement;
-      verticalMovement = this.keyboardController.verticalMovement;
-    }
+    const horizontalMovement = this.joystick.x;
+    const verticalMovement = this.joystick.y;
 
     this.player.update(horizontalMovement, verticalMovement);
     this.foodController.update();
@@ -77,21 +63,21 @@ export class Game {
   draw() {
     this.clearCanvas();
 
-    this.foodController.draw(ctx);
+    this.foodController.draw(this.ctx);
 
     if (this.gameOver) {
       this.joystick.disabled = true;
-      drawGameOver(ctx, this.foodController.foodScore);
+      drawGameOver(this.ctx, this.foodController.foodScore);
     } else {
-      this.player.draw(ctx);
+      this.player.draw(this.ctx);
     }
   }
 
   clearCanvas() {
-    ctx.resetTransform();
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    this.ctx.resetTransform();
+    this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-    ctx.fillStyle = "hsla(169, 59.8%, 80.0%, 0.4)";
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.ctx.fillStyle = "hsla(169, 59.8%, 80.0%, 0.4)";
+    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
 }
