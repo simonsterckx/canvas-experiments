@@ -1,5 +1,5 @@
 {
-  "name": "simple",
+  "name": "overeat",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -10,9 +10,6 @@
   "type": "module",
   "license": "ISC",
   "description": "",
-  "dependencies": {
-    "express": "^4.18.2"
-  },
   "devDependencies": {
     "vite": "^4.4.4"
   }
